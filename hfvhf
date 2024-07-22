@@ -1,0 +1,121 @@
+# coding:utf-8
+# 导入pymysql模块
+import pymysql
+import pandas as pd
+# 连接数据库
+try:
+    conn = pymysql.connect(host="localhost",
+                           user="root",
+                           password="713151",
+                           database="f_text")
+    print("数据库连接成功！")
+except pymysql.Error as e:
+    print("数据库连接失败",e)
+cur = conn.cursor()
+# 产生菜单栏
+while True:
+    num = int(input("请选择你需要操作的数据库：1.查询;2.插入;3.修改;4.删除;5.输出报表;6.退出;\n"))
+    # 查询
+    if num == 1:
+        sql = "SELECT * FROM 学生信息"
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql)
+                result = cur.fetchall()
+                for row in result:
+                    sid, sname, ssex, sclass, sbirthday, scomment, image_data = row
+                    print(
+                        f"学号: {sid}, 姓名: {sname}, 性别: {ssex}, 所属班级: {sclass}, 出生日期: {sbirthday}, 备注: {scomment}")
+                    if image_data:
+                        print(f"图片数据长度: {len(image_data)} bytes")
+                    else:
+                        print("没有图片数据")
+ 
+        except Exception as err:
+            print("SQL查询语句执行错误:", err)
+ #添加
+    elif num == 2:
+        sid = input("请输入学号:")
+        sname = input("请输入姓名:")
+        ssex = input("请输入性别:")
+        sclass = input("请输入班级:")
+        sbirthday = input("请输入出生日期:")
+        scomment = input("请输入备注：")
+        image_path = input("请输入图片路径 :")
+        image_data = None
+        if image_path:
+            with open(image_path, 'rb') as file:
+                image_data = file.read()
+        data = (sid, sname, ssex, sclass, sbirthday, scomment, image_data)
+        sql = "INSERT INTO 学生信息 (学号, 姓名, 性别, 所属班级, 出生日期, 备注, 图片) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql, data)
+            conn.commit()
+            print("插入成功")
+        except Exception as err:
+            print("SQL语句执行错误:", err)
+            conn.rollback()
+#修改
+    elif num == 3:
+        sid = input("请输入学号:")
+        sname = input("更改的姓名为:")
+        sgender = input("更改的性别为:")
+        sclass = input("更改的班级为:")
+        sbirthdate = input("更改的出生日期为:")
+        sremark = input("更改的备注为:")
+        choice = input("是否要更改图片内容？(是/否): ").lower()
+        if choice == "是":
+            # 获取图片文件路径
+            image_path = input("请输入图片文件路径:")
+            with open(image_path, 'rb') as image_file:
+                image_content = image_file.read()
+            sql = "UPDATE 学生信息 SET 姓名=%s, 性别=%s, 所属班级=%s, 出生日期=%s, 备注=%s, 图片=%s WHERE 学号=%s"
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(sql, (sname, sgender, sclass, sbirthdate, sremark, image_content, sid))
+                conn.commit()
+                print("更新成功")
+            except Exception as err:
+                print("SQL语句执行错误", err)
+                conn.rollback()
+        else:
+            sql = "UPDATE 学生信息 SET 姓名=%s, 性别=%s, 所属班级=%s, 出生日期=%s, 备注=%s WHERE 学号=%s"
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(sql, (sname, sgender, sclass, sbirthdate, sremark, sid))
+                conn.commit()
+                print("更新成功")
+            except Exception as err:
+                print("SQL语句执行错误", err)
+                conn.rollback()
+#删除
+    elif num == 4:
+        sid = input("请输入需要删除的学号:")
+        sql = "DELETE FROM 学生信息 WHERE 学号=%s"
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql, (sid,))
+            conn.commit()
+            print("删除成功")
+        except Exception as err:
+            print("SQL语句执行错误", err)
+            conn.rollback()
+#报表输出 Excle文件
+    elif num == 5:
+        cursor = conn.cursor()
+        sql = "SELECT * FROM 学生信息"
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        if not result:
+            print("没有数据")
+        else:
+            columns = [i[0] for i in cursor.description]
+            df = pd.DataFrame(result, columns=columns)
+            df.to_excel('E:/onedrive/桌面/学生信息管理系统/学生信息.xlsx')
+            print('完成输出')
+    elif num == 6:
+        break
+#关闭
+cur.close()
+conn.close()
