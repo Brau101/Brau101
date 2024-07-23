@@ -1,0 +1,90 @@
+    public Vector find;
+    Vector Student_name(String sname) {
+        Connection conn=null;                    
+        Statement stmt=null;                        
+        ResultSet rs=null;                          
+        Vector list = new Vector();
+        DBConn db = new DBConn();
+        conn = db.getConn();
+        String sql = "select *from student where sname='" + sname + "'";
+        Student s = null;
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+            int i = 0;
+            while (rs.next()) {
+                s = new Student();
+                s.setSno(rs.getString("sno"));
+                s.setSname(rs.getString("sname"));
+                s.setSsex(rs.getString("ssex"));
+                s.setSethnix(rs.getString("sethnix"));
+                s.setShome(rs.getString("shome"));
+                s.setSyear(rs.getString("syear"));
+                s.setSmajor(rs.getString("smajor"));
+                s.setScollege(rs.getString("scollege"));
+                s.setSbirth(rs.getString("sbirth"));
+                list.add(i,
+                        s.getSno() + " " + s.getSname() + " " + s.getSsex() + " " +
+                                s.getSethnix() + " " + s.getShome() + " " + s.getSyear() +
+                                " " + s.getSmajor() + " " + s.getScollege() + " " +
+                                s.getSbirth());
+                i++;
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+        } catch (Exception em) {
+            em.printStackTrace();
+            System.out.println("sql有错");
+        }
+        return list;
+    }
+   
+    public Vector selectStudent() {
+        Connection conn=null;                        
+        Statement stmt=null;                         
+        ResultSet rs=null;                       
+        DBConn db = new DBConn();
+        conn = db.getConn();
+        String sql = "select sno from student";
+        Vector v = new Vector();
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                v.add(rs.getString("sno"));
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+        } catch (Exception em) {
+            em.printStackTrace();
+            System.out.println("sql有错");
+        }
+        return v;
+    }
+
+    public String findOneStudent(String sno) {
+        Connection conn=null;                       
+        Statement stmt=null;                         
+        ResultSet rs=null;                          
+        DBConn db = new DBConn();
+        conn = db.getConn();
+        String sql = "select sname from student where sno='" + sno + "'";
+        String s = "";
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+            if (rs.next()) {
+                s = rs.getString("sname");
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+        } catch (Exception em) {
+            em.printStackTrace();
+            System.out.println("sql有错");
+        }
+        return s;
+    }
+}
